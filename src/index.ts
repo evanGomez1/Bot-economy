@@ -6,9 +6,7 @@ import { validateConfig } from "./bot/config";
 const rawPort = process.env["PORT"];
 
 if (!rawPort) {
-  throw new Error(
-    "PORT environment variable is required but was not provided.",
-  );
+  throw new Error("PORT environment variable is required but was not provided.");
 }
 
 const port = Number(rawPort);
@@ -25,7 +23,7 @@ app.listen(port, (err) => {
   logger.info({ port }, "Server listening");
 });
 
-// Arrancar el bot de Discord
+// Arrancar el bot de Discord con reconexión automática
 try {
   validateConfig();
   startBot().catch((err) => {
@@ -39,4 +37,13 @@ try {
 process.on("SIGTERM", async () => {
   await stopBot();
   process.exit(0);
+});
+
+// Prevenir crashes por errores no manejados
+process.on("uncaughtException", (err) => {
+  logger.error({ err }, "Uncaught exception — bot keeps running");
+});
+
+process.on("unhandledRejection", (reason) => {
+  logger.error({ reason }, "Unhandled rejection — bot keeps running");
 });
